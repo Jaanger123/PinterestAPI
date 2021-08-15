@@ -33,6 +33,11 @@ class PinViewSet(ModelViewSet):
 			permissions = [IsAuthenticated]
 		return [permission() for permission in permissions]
 
+	def get_serializer_context(self):
+		context = super().get_serializer_context()
+		context['action'] = self.action
+		return context
+
 	@action(detail=False, methods=['get'])
 	def own(self, request, pk=None):
 		queryset = Pin.objects.filter(author=request.user)

@@ -17,7 +17,7 @@ class Pin(models.Model):
 	category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='pins')
 	title = models.CharField(max_length=100)
 	text = models.TextField()
-	image = models.ImageField(upload_to='pins')
+	image = models.ImageField(upload_to='pins', blank=True, null=True)
 	link = models.CharField(max_length=200)
 	created = models.DateTimeField(auto_now_add=True)
 
@@ -27,7 +27,7 @@ class Pin(models.Model):
 
 class Comment(models.Model):
 	author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
-	pin = models.ForeignKey(Pin, on_delete=models.CASCADE, related_name='pins')
+	pin = models.ForeignKey(Pin, on_delete=models.CASCADE, related_name='comments')
 	text = models.TextField()
 	created = models.DateTimeField(auto_now_add=True)
 
