@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import CustomUser
 from .utils import send_activation_code
@@ -24,3 +26,17 @@ class RegisterSerializer(serializers.ModelSerializer):
 		user = CustomUser.objects.create_user(**validated_data)
 		send_activation_code(user.email, user.activation_code)
 		return user
+
+
+class LogoutSerializer(serializers.Serializer):
+	refresh = serializers.CharField()
+
+	def validate(self, attrs):
+		self.token = attrs.get('refresh')
+		return attrs
+
+	def save(self, **kwargs):
+		try:
+			RefreshToken(self.token).blacklist()
+		except TokenError:
+			self.fail('Incorrect token')

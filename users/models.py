@@ -41,4 +41,4 @@ class CustomUser(AbstractUser):
 		self.activation_code = code
 
 	def __str__(self):
-		return self.email
+		return self.username
