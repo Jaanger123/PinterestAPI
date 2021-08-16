@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.validators import MaxValueValidator
 from django.db import models
 
 User = get_user_model()
@@ -33,3 +34,12 @@ class Comment(models.Model):
 
 	def __str__(self):
 		return self.author
+
+
+class Rating(models.Model):
+	author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ratings')
+	pin = models.ForeignKey(Pin, on_delete=models.CASCADE, related_name='ratings')
+	rating = models.PositiveIntegerField(validators=[MaxValueValidator(5)])
+
+	def __str__(self):
+		return f'{self.author}: {self.pin} - {self.rating}'

@@ -1,6 +1,7 @@
-from rest_framework import serializers
+from rest_framework import serializers, status
 
 from .models import *
+from .utils import get_rating
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -25,6 +26,7 @@ class PinSerializer(serializers.ModelSerializer):
 			representation['comments'] = instance.comments.count()
 		elif action == 'retrieve':
 			representation['comments'] = CommentSerializer(instance.comments.all(), many=True).data
+		representation['rating'] = get_rating(representation.get('id'), Pin)
 		return representation
 
 	def create(self, validated_data):
@@ -45,3 +47,23 @@ class CommentSerializer(serializers.ModelSerializer):
 		request = self.context.get('request')
 		comment = Comment.objects.create(author=request.user, **validated_data)
 		return comment
+
+
+class RatingSerializer(serializers.ModelSerializer):
+	author = serializers.ReadOnlyField(source='author.username')
+
+	class Meta:
+		model = Rating
+		fields = '__all__'
+
+	def create(self, validated_data):
+		request = self.context.get('request')
+		user = request.user
+		pin = validated_data.get('pin')
+
+		if Rating.objects.filter(author=user, pin=pin):
+			rating = Rating.objects.get(author=user, pin=pin)
+			return rating
+
+		rating = Rating.objects.create(author=request.user, **validated_data)
+		return rating

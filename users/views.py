@@ -1,12 +1,13 @@
 from django.contrib.auth import get_user_model
 from rest_framework import views, status
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import RegisterSerializer, LogoutSerializer
+from .serializers import *
+from .utils import send_activation_code
+from .permissions import IsNotAuthenticated
 
 User = get_user_model()
 
@@ -42,3 +43,27 @@ class ActivationView(views.APIView):
 		user.is_active = True
 		user.save()
 		return Response('Account successfully activated.', status.HTTP_200_OK)
+
+
+class ResetPasswordView(APIView):
+	permission_classes = [IsNotAuthenticated]
+
+	def post(self, request):
+		serializer = LogoutSerializer(data=request.data)
+		serializer.is_valid(raise_exception=True)
+		serializer.save()
+		email = request.query_params.get('email')
+		user = get_object_or_404(User, email=email)
+		user.is_active = False
+		user.create_activation_code()
+		user.save()
+		send_activation_code(user.email, user.activation_code, 'reset_password')
+		return Response('Activation code was sent to your email.', status.HTTP_200_OK)
+
+
+class CompleteResetPassword(APIView):
+	def post(self, request):
+		serializer = ResetPasswordSerializer(data=request.data)
+		if serializer.is_valid(raise_exception=True):
+			serializer.save()
+			return Response('You have successfully recovered your password', status.HTTP_200_OK)

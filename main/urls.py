@@ -25,6 +25,7 @@ router = DefaultRouter()
 router.register('categories', CategoryViewSet)
 router.register('pins', PinViewSet)
 router.register('comments', CommentViewSet)
+router.register('ratings', RatingViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
