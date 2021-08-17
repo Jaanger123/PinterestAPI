@@ -21,12 +21,16 @@ class PinSerializer(serializers.ModelSerializer):
 	def to_representation(self, instance):
 		representation = super().to_representation(instance)
 		action = self.context.get('action')
+		representation['likes'] = instance.likes.count()
+		representation['rating'] = get_rating(representation.get('id'), Pin)
 
 		if action == 'list':
+			representation.pop('text')
+			representation.pop('link')
 			representation['comments'] = instance.comments.count()
 		elif action == 'retrieve':
 			representation['comments'] = CommentSerializer(instance.comments.all(), many=True).data
-		representation['rating'] = get_rating(representation.get('id'), Pin)
+
 		return representation
 
 	def create(self, validated_data):
@@ -67,3 +71,23 @@ class RatingSerializer(serializers.ModelSerializer):
 
 		rating = Rating.objects.create(author=request.user, **validated_data)
 		return rating
+
+
+class LikeSerializer(serializers.ModelSerializer):
+	author = serializers.ReadOnlyField(source='author.username')
+
+	class Meta:
+		model = Like
+		fields = '__all__'
+
+	def create(self, validated_data):
+		request = self.context.get('request')
+		user = request.user
+		pin = validated_data.get('pin')
+
+		if Like.objects.filter(author=user, pin=pin):
+			like = Like.objects.get(author=user, pin=pin)
+			return like
+
+		like = Like.objects.create(author=request.user, **validated_data)
+		return like

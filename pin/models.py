@@ -25,6 +25,9 @@ class Pin(models.Model):
 	def __str__(self):
 		return self.title
 
+	# class Meta:
+	# 	ordering
+
 
 class Comment(models.Model):
 	author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
@@ -43,3 +46,8 @@ class Rating(models.Model):
 
 	def __str__(self):
 		return f'{self.author}: {self.pin} - {self.rating}'
+
+
+class Like(models.Model):
+	author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='likes')
+	pin = models.ForeignKey(Pin, on_delete=models.CASCADE, related_name='likes')

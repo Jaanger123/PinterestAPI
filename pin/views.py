@@ -1,7 +1,7 @@
-from django.db.models import Q
+from django.db.models import Q, Max, Min, Count
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.mixins import ListModelMixin, CreateModelMixin, DestroyModelMixin
+from rest_framework.mixins import ListModelMixin, CreateModelMixin, DestroyModelMixin, RetrieveModelMixin
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
@@ -56,9 +56,22 @@ class PinViewSet(ModelViewSet):
 		return context
 
 	@action(detail=False, methods=['get'])
+	def mostliked(self, request, pk=None):
+		queryset = Pin.objects.annotate(max_likes=Count('likes')).order_by('-max_likes')
+		serializer = PinSerializer(queryset, many=True)
+		return Response(serializer.data, status.HTTP_200_OK)
+
+	@action(detail=False, methods=['get'])
 	def own(self, request, pk=None):
 		queryset = Pin.objects.filter(author=request.user)
 		serializer = PinSerializer(queryset, many=True)
+		return Response(serializer.data, status.HTTP_200_OK)
+
+	@action(detail=False, methods=['get'])
+	def liked(self, request, pk=None):
+		likes = Like.objects.filter(author=request.user)
+		pin_list = [like.pin for like in likes]
+		serializer = PinSerializer(pin_list, many=True)
 		return Response(serializer.data, status.HTTP_200_OK)
 
 	@action(detail=False, methods=['get'])
@@ -92,6 +105,24 @@ class RatingViewSet(ModelViewSet):
 
 	def get_permissions(self):
 		if self.action in ['update', 'partial_update', 'destroy']:
+			permissions = [IsPostAuthor]
+		elif self.action in ['create']:
+			permissions = [IsAuthenticated]
+		else:
+			permissions = [IsAdminUser]
+		return [permission() for permission in permissions]
+
+
+class LikeViewSet(CreateModelMixin, DestroyModelMixin, ListModelMixin, RetrieveModelMixin, GenericViewSet):
+	queryset = Like.objects.all()
+	serializer_class = LikeSerializer
+
+	def filter_queryset(self, queryset):
+		queryset = super().filter_queryset(queryset)
+		return queryset.order_by('author')
+
+	def get_permissions(self):
+		if self.action in ['destroy']:
 			permissions = [IsPostAuthor]
 		elif self.action in ['create']:
 			permissions = [IsAuthenticated]
