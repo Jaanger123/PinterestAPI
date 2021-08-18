@@ -30,6 +30,8 @@ class PinSerializer(serializers.ModelSerializer):
 			representation['comments'] = instance.comments.count()
 		elif action == 'retrieve':
 			representation['comments'] = CommentSerializer(instance.comments.all(), many=True).data
+			queryset = Pin.objects.filter(category=instance.category)
+			representation['similar'] = PinSerializer(queryset, many=True).data
 
 		return representation
 
@@ -89,5 +91,5 @@ class LikeSerializer(serializers.ModelSerializer):
 			like = Like.objects.get(author=user, pin=pin)
 			return like
 
-		like = Like.objects.create(author=request.user, **validated_data)
+		like = Like.objects.create(author=user, **validated_data)
 		return like

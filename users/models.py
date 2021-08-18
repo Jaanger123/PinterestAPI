@@ -27,7 +27,7 @@ class CustomUserManager(BaseUserManager):
 
 class CustomUser(AbstractUser):
 	username = models.CharField(max_length=50, unique=True, null=False, blank=False)
-	email = models.EmailField(unique=True, null=False, blank=False)
+	email = models.EmailField(unique=True, null=True, blank=True)
 	is_active = models.BooleanField(default=False)
 	activation_code = models.CharField(max_length=8, blank=True)
 
@@ -36,9 +36,9 @@ class CustomUser(AbstractUser):
 	USERNAME_FIELD = 'email'
 	REQUIRED_FIELDS = ['username']
 
+	def __str__(self):
+		return self.username
+
 	def create_activation_code(self):
 		code = get_random_string(8, allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
 		self.activation_code = code
-
-	def __str__(self):
-		return self.username
