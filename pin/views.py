@@ -1,4 +1,4 @@
-from django.db.models import Q, Max, Min, Count
+from django.db.models import Q, Count
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin, CreateModelMixin, DestroyModelMixin, RetrieveModelMixin
@@ -14,10 +14,6 @@ from .permissions import *
 class CategoryViewSet(ListModelMixin, CreateModelMixin, DestroyModelMixin, GenericViewSet):
 	queryset = Category.objects.all()
 	serializer_class = CategorySerializer
-
-	def filter_queryset(self, queryset):
-		queryset = super().filter_queryset(queryset)
-		return queryset.order_by('title')
 
 	def get_permissions(self):
 		if self.action in ['create', 'destroy']:
@@ -38,10 +34,6 @@ class CategoryViewSet(ListModelMixin, CreateModelMixin, DestroyModelMixin, Gener
 class PinViewSet(ModelViewSet):
 	queryset = Pin.objects.all()
 	serializer_class = PinSerializer
-
-	def filter_queryset(self, queryset):
-		queryset = super().filter_queryset(queryset)
-		return queryset.order_by('-created')
 
 	def get_permissions(self):
 		if self.action in ['update', 'partial_update', 'destroy']:
@@ -99,10 +91,6 @@ class RatingViewSet(ModelViewSet):
 	queryset = Rating.objects.all()
 	serializer_class = RatingSerializer
 
-	def filter_queryset(self, queryset):
-		queryset = super().filter_queryset(queryset)
-		return queryset.order_by('author')
-
 	def get_permissions(self):
 		if self.action in ['update', 'partial_update', 'destroy']:
 			permissions = [IsPostAuthor]
@@ -117,10 +105,6 @@ class LikeViewSet(CreateModelMixin, DestroyModelMixin, ListModelMixin, RetrieveM
 	queryset = Like.objects.all()
 	serializer_class = LikeSerializer
 
-	def filter_queryset(self, queryset):
-		queryset = super().filter_queryset(queryset)
-		return queryset.order_by('author')
-
 	def get_permissions(self):
 		if self.action in ['destroy']:
 			permissions = [IsPostAuthor]
@@ -129,3 +113,9 @@ class LikeViewSet(CreateModelMixin, DestroyModelMixin, ListModelMixin, RetrieveM
 		else:
 			permissions = [IsAdminUser]
 		return [permission() for permission in permissions]
+
+
+class ProfileViewSet(ModelViewSet):
+	queryset = Profile.objects.all()
+	serializer_class = ProfileSerializer
+	permission_classes = [IsAdminUser]

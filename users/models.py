@@ -37,7 +37,7 @@ class CustomUser(AbstractUser):
 	REQUIRED_FIELDS = ['username']
 
 	def __str__(self):
-		return self.username
+		return f'{self.username} | ID: {self.id}'
 
 	def create_activation_code(self):
 		code = get_random_string(8, allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')

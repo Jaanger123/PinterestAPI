@@ -3,7 +3,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import CustomUser
-from .utils import send_activation_code
+from .utils import send_activation_code, create_profile
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -25,6 +25,11 @@ class RegisterSerializer(serializers.ModelSerializer):
 	def create(self, validated_data):
 		user = CustomUser.objects.create_user(**validated_data)
 		send_activation_code(user.email, user.activation_code, 'register')
+		return user
+
+	def save(self, **kwargs):
+		user = super().save()
+		create_profile(user)
 		return user
 
 
@@ -82,3 +87,15 @@ class ResetPasswordSerializer(serializers.Serializer):
 		user.set_password(password)
 		user.save()
 		return user
+
+
+class AccountsSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = CustomUser
+		fields = ['id', 'username', 'email']
+
+	def to_representation(self, instance):
+		representation = super().to_representation(instance)
+		representation['followers'] = instance.followers.count()
+		representation['followings'] = instance.followings.count()
+		return representation

@@ -4,7 +4,8 @@ from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from pin.models import Profile
+from pin.serializers import ProfileSerializer
 from .serializers import *
 from .utils import send_activation_code
 from .permissions import IsNotAuthenticated
@@ -67,3 +68,49 @@ class CompleteResetPassword(APIView):
 		if serializer.is_valid(raise_exception=True):
 			serializer.save()
 			return Response('You have successfully recovered your password', status.HTTP_200_OK)
+
+
+class MyProfileView(APIView):
+	def get(self, request):
+		queryset = Profile.objects.get(author=request.user)
+		serializer = ProfileSerializer(queryset)
+		return Response(serializer.data)
+
+
+class AccountsView(APIView):
+	def get(self, request):
+		queryset = CustomUser.objects.all()
+		serializer = AccountsSerializer(queryset, many=True)
+		return Response(serializer.data)
+
+
+class FollowView(APIView):
+	def post(self, request):
+
+		if not request.data.get('id'):
+			return Response('Enter the user id.', status.HTTP_400_BAD_REQUEST)
+
+		user_id = request.data.get('id')
+		user = get_object_or_404(CustomUser, id=user_id)
+		follower = get_object_or_404(Profile, author=request.user)
+		followed_to = get_object_or_404(Profile, author=user)
+		print(follower, followed_to)
+		follower.followings.add(followed_to.author)
+		followed_to.followers.add(follower.author)
+		return Response(f'You followed to {followed_to}.')
+
+
+class UnFollowView(APIView):
+	def post(self, request):
+
+		if not request.data.get('id'):
+			return Response('Enter the user id.', status.HTTP_400_BAD_REQUEST)
+
+		user_id = request.data.get('id')
+		user = get_object_or_404(CustomUser, id=user_id)
+		follower = get_object_or_404(Profile, author=request.user)
+		followed_to = get_object_or_404(Profile, author=user)
+		print(follower, followed_to)
+		follower.followings.remove(followed_to.author)
+		followed_to.followers.remove(follower.author)
+		return Response(f'You unfollowed from {followed_to}.')

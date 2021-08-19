@@ -1,4 +1,5 @@
-from rest_framework import serializers, status
+from rest_framework import serializers
+from users.utils import send_notification
 
 from .models import *
 from .utils import get_rating
@@ -30,7 +31,7 @@ class PinSerializer(serializers.ModelSerializer):
 			representation['comments'] = instance.comments.count()
 		elif action == 'retrieve':
 			representation['comments'] = CommentSerializer(instance.comments.all(), many=True).data
-			queryset = Pin.objects.filter(category=instance.category)
+			queryset = Pin.objects.filter(category=instance.category)[:5]
 			representation['similar'] = PinSerializer(queryset, many=True).data
 
 		return representation
@@ -38,6 +39,10 @@ class PinSerializer(serializers.ModelSerializer):
 	def create(self, validated_data):
 		request = self.context.get('request')
 		pin = Pin.objects.create(author=request.user, **validated_data)
+
+		for follower in pin.author.profile.followers.all():
+			send_notification(pin.author, follower, pin)
+
 		return pin
 
 
@@ -93,3 +98,27 @@ class LikeSerializer(serializers.ModelSerializer):
 
 		like = Like.objects.create(author=user, **validated_data)
 		return like
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+	author = serializers.ReadOnlyField(source='author.username')
+	created = serializers.DateTimeField(format='%d/%m/%Y %H:%M:%S', read_only=True)
+
+	class Meta:
+		model = Profile
+		fields = '__all__'
+
+	def to_representation(self, instance):
+		representation = super().to_representation(instance)
+		representation['followers'] = instance.followers.count()
+		representation['followings'] = instance.followings.count()
+		return representation
+
+	def create(self, validated_data):
+		request = self.context.get('request')
+		profile = Profile.objects.create(author=request.user, **validated_data)
+		return profile
+
+	def save(self, **kwargs):
+		profile = super().save()
+		return profile
