@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+from users.models import CustomUser
 from users.utils import send_notification
 
 from .models import *
@@ -31,7 +33,7 @@ class PinSerializer(serializers.ModelSerializer):
 			representation['comments'] = instance.comments.count()
 		elif action == 'retrieve':
 			representation['comments'] = CommentSerializer(instance.comments.all(), many=True).data
-			queryset = Pin.objects.filter(category=instance.category)[:5]
+			queryset = Pin.objects.exclude(id=instance.id).filter(category=instance.category)[:4]
 			representation['similar'] = PinSerializer(queryset, many=True).data
 
 		return representation
@@ -39,6 +41,7 @@ class PinSerializer(serializers.ModelSerializer):
 	def create(self, validated_data):
 		request = self.context.get('request')
 		pin = Pin.objects.create(author=request.user, **validated_data)
+		user = CustomUser.objects.get(id=request.user.id)
 
 		for follower in pin.author.profile.followers.all():
 			send_notification(pin.author, follower, pin)

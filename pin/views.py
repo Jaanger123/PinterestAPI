@@ -69,10 +69,22 @@ class PinViewSet(ModelViewSet):
 	@action(detail=False, methods=['get'])
 	def search(self, request, pk=None):
 		q = request.query_params.get('q')
-		queryset = self.get_queryset()
-		queryset = queryset.filter(Q(title__icontains=q) | Q(text__icontains=q))
-		serializer = PinSerializer(queryset, many=True)
-		return Response(serializer.data, status=status.HTTP_200_OK)
+
+		if q:
+			queryset = self.get_queryset()
+			queryset = queryset.filter(Q(title__icontains=q) | Q(text__icontains=q))
+			serializer = PinSerializer(queryset, many=True)
+			return Response(serializer.data, status=status.HTTP_200_OK)
+
+		h = request.query_params.get('h')
+
+		if h:
+			queryset = self.get_queryset()
+			queryset = queryset.filter(hashtags__icontains=h)
+			serializer = PinSerializer(queryset, many=True)
+			return Response(serializer.data, status=status.HTTP_200_OK)
+
+		return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class CommentViewSet(ModelViewSet):

@@ -20,9 +20,10 @@ class Pin(models.Model):
 	author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pins')
 	category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='pins')
 	title = models.CharField(max_length=100)
-	text = models.TextField()
+	text = models.TextField(null=True, blank=True)
+	hashtags = models.TextField(null=True, blank=True)
 	image = models.ImageField(upload_to='pins', blank=True, null=True)
-	link = models.CharField(max_length=200)
+	link = models.CharField(max_length=200, null=True, blank=True)
 	created = models.DateTimeField(auto_now_add=True)
 
 	class Meta:
