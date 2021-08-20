@@ -36,6 +36,5 @@ urlpatterns = [
     path('api/account/', include('users.urls')),
     path('api/accounts/', AccountsView.as_view()),
     path('api/accounts/', include('users.urls')),
-    path('api/', include(router.urls)),
-    path('rest-auth/', include('rest_auth.urls')),
+    path('api/', include(router.urls))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
