@@ -94,6 +94,8 @@ class CommentViewSet(ModelViewSet):
 	def get_permissions(self):
 		if self.action in ['update', 'partial_update', 'destroy']:
 			permissions = [IsPostAuthor]
+		elif self.action in ['create']:
+			permissions = [IsAuthenticated]
 		else:
 			permissions = [IsAdminUser]
 		return [permission() for permission in permissions]
@@ -130,4 +132,17 @@ class LikeViewSet(CreateModelMixin, DestroyModelMixin, ListModelMixin, RetrieveM
 class ProfileViewSet(ModelViewSet):
 	queryset = Profile.objects.all()
 	serializer_class = ProfileSerializer
-	permission_classes = [IsAdminUser]
+
+	def get_permissions(self):
+		if self.action in ['retrieve', 'update', 'partial_update']:
+			permissions = [IsPostAuthor]
+		else:
+			permissions = [IsAuthenticated]
+		return [permission() for permission in permissions]
+
+	@action(detail=False, methods=['get'])
+	def myprofile(self, request, pk=None):
+		queryset = Profile.objects.get(author=request.user)
+		serializer = ProfileSerializer(queryset)
+		return Response(serializer.data, status.HTTP_200_OK)
+	

@@ -49,10 +49,7 @@ class ActivationView(views.APIView):
 class ResetPasswordView(APIView):
 	permission_classes = [IsNotAuthenticated]
 
-	def post(self, request):
-		serializer = LogoutSerializer(data=request.data)
-		serializer.is_valid(raise_exception=True)
-		serializer.save()
+	def get(self, request):
 		email = request.query_params.get('email')
 		user = get_object_or_404(User, email=email)
 		user.is_active = False
@@ -68,13 +65,6 @@ class CompleteResetPassword(APIView):
 		if serializer.is_valid(raise_exception=True):
 			serializer.save()
 			return Response('You have successfully recovered your password', status.HTTP_200_OK)
-
-
-class MyProfileView(APIView):
-	def get(self, request):
-		queryset = Profile.objects.get(author=request.user)
-		serializer = ProfileSerializer(queryset)
-		return Response(serializer.data)
 
 
 class AccountsView(APIView):

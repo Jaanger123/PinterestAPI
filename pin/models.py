@@ -76,7 +76,7 @@ class Profile(models.Model):
 	avatar = models.ImageField(upload_to='avatars', null=True, blank=True)
 	first_name = models.CharField(max_length=50, null=True, blank=True)
 	last_name = models.CharField(max_length=50, null=True, blank=True)
-	date_of_birth = models.DateTimeField(null=True, blank=True)
+	date_of_birth = models.DateField(null=True, blank=True)
 	gender = models.CharField(max_length=20, choices=GENDER_CHOICES, null=True, blank=True)
 	country = models.CharField(max_length=50, null=True, blank=True)
 	city = models.CharField(max_length=50, null=True, blank=True)

@@ -1,4 +1,4 @@
-from rest_framework import serializers
+from rest_framework import serializers, fields
 
 from users.models import CustomUser
 from users.utils import send_notification
@@ -106,6 +106,7 @@ class LikeSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
 	author = serializers.ReadOnlyField(source='author.username')
 	created = serializers.DateTimeField(format='%d/%m/%Y %H:%M:%S', read_only=True)
+	date_of_birth = fields.DateField(input_formats=['%d.%m.%Y'])
 
 	class Meta:
 		model = Profile
